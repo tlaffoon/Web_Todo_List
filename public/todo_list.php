@@ -124,13 +124,13 @@ function checkUploadError() {
 		if (!empty($_POST)) {
 			$list = addItem($_POST['add_item'], $list);
 			echo "added item.";
-			$list = saveToFile($list);
+			saveToFile($list);
 		}
 
 		if (isset($_GET['removeIndex'])) {
 		 	$list = removeItem($_GET['removeIndex'], $list);
 		 	echo "removed item.";
-		 	$list = saveToFile($list);
+		 	saveToFile($list);
 		}
 		
 
