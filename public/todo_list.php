@@ -57,7 +57,7 @@ function uploadFile() {
 
 	if (isset($saved_filename)) {
 	    // If we did, show a link to the uploaded file
-	    echo "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
+	    return "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
 	}
 }
 
@@ -76,6 +76,37 @@ function saveToFile($list, $filename = './data/list.txt') {
 	fclose($handle);
 
 	return $list;
+}
+
+function checkMIME() {
+	if ($_FILES['upload_file']['type'] != 'text/plain') {
+		echo "Error on file upload: MIME type isn't text/plain.";
+		return false;
+	}
+
+	else 
+		return true;
+}
+
+function checkFileCount() {
+	if (count($_FILES) == 1) {
+		return true;
+	}
+
+	else
+		// echo "Error on file upload: File count isn't 1.";
+		return false;
+}
+
+function checkUploadError() {
+	if ($_FILES['upload_file']['error'] == 0) {
+		return false;
+	}
+
+	else
+		echo "Error on file upload: Unknown error."; 
+		return true;
+
 }
 
 ?>
@@ -102,9 +133,13 @@ function saveToFile($list, $filename = './data/list.txt') {
 		 	$list = saveToFile($list);
 		}
 		
-		if (count($_FILES) > 0 && $_FILES['upload_file']['error'] == 0) {
-			echo uploadFile();		
+
+		if (checkFileCount() == true) {
+			if ( checkUploadError() == false && checkMIME() == true ) {
+				uploadFile();
+			}
 		}
+
 
 		echo outputList($list);
 
