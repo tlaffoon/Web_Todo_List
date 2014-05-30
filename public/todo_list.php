@@ -1,116 +1,117 @@
 <?php
-
 /* -------------------------------------- */
 
 // OPEN FILE TO POPULATE LIST
-
-function open_file($filename = './data/list.txt') {
+function openFile($filename) {
 
     $handle = fopen($filename, 'r');
-    $contents = trim(fread($handle, filesize($filename)));
+
+    if (filesize($filename) == 0) {
+    	$default_filesize = 1000;
+    }
+
+    else $default_filesize = filesize($filename);
+
+    $contents = trim(fread($handle, $default_filesize));
     $list = explode("\n", $contents);
     fclose($handle);
 
     return $list;
 }
 
-/* -------------------------------------- */
-
 // OUTPUTS LIST FROM ARRAY AS HTML
-
-function output_list($list) {
+function outputList($list) {
 
 	$string = '';
-
+	$string .= "<ol>";
 	foreach ($list as $key => $item) {
-		$removeLink = "<a href=\"todo_list.php?removeIndex={$key} \">Remove</a>";
-		echo "<li>{$item} - {$removeLink}</li>";
+		$removeLink = "<a href=\"new.php?removeIndex={$key} \">Remove</a>";
+		$string .= "<li>{$item} - {$removeLink}</li>";
 	}
+	$string .= "</ol>";
+	return $string;
 }
 
-/* -------------------------------------- */
+function addItem($item, $list) {
+	// Add new item to existing array
+	$list[] = $item;
+	return $list;
+}
+
+function removeItem($item, $list) {
+	// If get request exists to remove item, do so.
+	unset($list[$item]);
+	array_values($list);
+	return $list;
+}
 
 // Overwrites Existing Save File With Current List
-
-function save_to_file($list, $filename = './data/list.txt') {
+function saveToFile($list, $filename = './data/list.txt') {
 
 	$handle = fopen($filename, 'w');
-	$string = implode("\n", $list);
+	
+	$string = '';
+
+	foreach ($list as $key => $value) {
+		$string .= "$value\n";
+	}
+
 	fwrite($handle, $string);
 	fclose($handle);
 
-	return "Succesfully saved list to file.";
+	return $list;
 }
-
-// add function dedupe list
-// add function sort list alphabetically
-// add function set priority of items ... sort by priority
-
-/* -------------------------------------- */
-
-/*  BEGIN MAIN LOGIC  */
-
-// Populate list array from data file
-$list = open_file();
-
-// Check for post data, continue if not empty
-if (!empty($_POST)) {
-
-	// Assign new_item variable to value posted from form.
-	$new_item = $_POST['add_item'];
-
-	// Add new item to existing array
-	$list[] = $new_item;
-
-	save_to_file($list);
-}
-
-// If get request exists to remove item, do so.
-if (isset($_GET['removeIndex'])) {
- 	unset($list[$_GET['removeIndex']]);
- 	array_values($list);
- 	// save new array to file
- 	save_to_file($list);
- }
 
 ?>
 
 <html>
 <head>
-	<title>Todo List Web App</title>
+	<title>To Do List</title>
 </head>
 <body>
+<h2>To Do List:</h2>
+	<?php
 
-<!-- Add Item Form																-->
-	<form method="POST" action="">
+	$list = openFile('./data/list.txt');
 
-		<label for="add_item">Add Item: </label>
-		<input id="add_item" name="add_item" type="text" placeholder="Item Here">
+		if (!empty($_POST)) {
+			$list = addItem($_POST['add_item'], $list);
+			echo "added item.\n";
+			$list = saveToFile($list);
+		}
 
-		<button type="submit">SUBMIT</button>
+		if (isset($_GET['removeIndex'])) {
+		 	$list = removeItem($_GET['removeIndex'], $list);
+		 	echo "removed item.\n";
+		 	$list = saveToFile($list);
+		}
+		
+		echo outputList($list);
 
-	</form>
-<!-- 																			-->
+	?>
 
+	<!-- Add Item Form																-->
+	<h3>Add Item Form:</h3>
+		<form method="POST" action="">
 
-<!-- Remove Item Form															
-	<form method="GET" action="">
+			<label for="add_item">Add Item: </label>
+			<input id="add_item" name="add_item" type="text" placeholder="Item Here">
 
-		<label for="remove_item">Remove Item: </label>
-		<input id="remove_item" name="remove_item" type="text" placeholder="Item #">
+			<button type="submit">SUBMIT</button>
 
-		<button type="submit">SUBMIT</button>
+		</form>
 
-	</form>
-	 																			-->
+	<!-- Upload File Form																-->
+	<h3>Upload File Form:</h3>
 
-	<ol>
-		<?php
-			// Output List to Browser
-			echo output_list($list);
-		?>
-	</ol>
+		<form method="POST" enctype="multipart/form-data" action="">
+
+			<label for="upload_file">Upload File: </label>
+			<input id="upload_file" name="upload_file" type="file" placeholder="Choose a file to upload">
+
+			<button type="submit" value="Upload">SUBMIT</button>
+
+		</form>
 
 </body>
 </html>
-
