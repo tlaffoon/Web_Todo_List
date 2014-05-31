@@ -142,7 +142,7 @@ function sanitizeInput($string) {
 			}
 		}
 
-		echo outputList($list);
+		echo outputList(array_unique($list));
 	?>
 <hr>
 	<!-- Add Item Form															-->
