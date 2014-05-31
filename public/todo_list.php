@@ -2,26 +2,24 @@
 
 // OPEN FILE TO POPULATE LIST
 function openFile($filename) {
-
     $handle = fopen($filename, 'r');
 
+    // Sets filesize to default 1kb if empty file
     if (filesize($filename) == 0) {
     	$default_filesize = 1000;
     }
-
     else $default_filesize = filesize($filename);
 
     $contents = trim(fread($handle, $default_filesize));
     $list = explode("\n", $contents);
     fclose($handle);
-
     return $list;
 }
 
 // OUTPUTS LIST FROM ARRAY AS HTML
 function outputList($list) {
 
-	$string = '';
+	$string = null;
 	$string .= "<ol>";
 	foreach ($list as $key => $item) {
 		$removeLink = "<a href=\"?removeIndex={$key} \">Remove</a>";
@@ -32,41 +30,33 @@ function outputList($list) {
 }
 
 function addItem($item, $list) {
-	// Add new item to existing array
 	$list[] = $item;
-	$GLOBALS['item_added'] = "<h5>Added item.</h5>";
+	$GLOBALS['item_added'] = "Added item.";
 	return $list;
 }
 
 function removeItem($item, $list) {
-	// If get request exists to remove item, do so.
 	unset($list[$item]);
 	array_values($list);
-	$GLOBALS['item_removed'] = "<h5>Removed item.</h5>";
+	$GLOBALS['item_removed'] = "Removed item.";
 	return $list;
 }
 
 function uploadFile() {
-	// Set the destination directory for uploads
 	$upload_dir = '/vagrant/sites/todo.dev/public/uploads/';
-	// Grab the filename from the uploaded file by using basename
 	$filename = basename($_FILES['upload_file']['name']);
-	// Create the saved filename using the file's original name and our upload directory
 	$saved_filename = $upload_dir . $filename;
-	// Move the file from the temp location to our uploads directory
 	move_uploaded_file($_FILES['upload_file']['tmp_name'], $saved_filename);
 
 	if (isset($saved_filename)) {
-	    // If we did, show a link to the uploaded file
-	    $GLOBALS['file_uploaded'] = "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
+	    $GLOBALS['file_uploaded']  = "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
 	}
 }
 
 // Overwrites Existing Save File With Current List
 function saveToFile($list, $filename = './data/list.txt') {
-
+	$list = array_unique($list);
 	$handle = fopen($filename, 'w');
-	
 	$string = '';
 
 	foreach ($list as $key => $value) {
@@ -75,16 +65,14 @@ function saveToFile($list, $filename = './data/list.txt') {
 
 	fwrite($handle, $string);
 	fclose($handle);
-
 	return $list;
 }
 
 function checkMIME() {
 	if ($_FILES['upload_file']['type'] != 'text/plain') {
-		$GLOBALS['error_message'] = "<h5>Error on file upload: MIME type isn't text/plain.</h5>";
+		$GLOBALS['error_message'] = "Error on file upload: MIME type isn't text/plain.";
 		return false;
 	}
-
 	else 
 		return true;
 }
@@ -93,7 +81,6 @@ function checkFileCount() {
 	if (count($_FILES) == 1) {
 		return true;
 	}
-
 	else
 		return false;
 }
@@ -102,11 +89,9 @@ function checkUploadError() {
 	if ($_FILES['upload_file']['error'] == 0) {
 		return false;
 	}
-
 	else
-		$GLOBALS['error_message'] = "<h5>Error on file upload: Unknown error.</h5>";
+		$GLOBALS['error_message'] = "Error on file upload: Unknown error.";
 		return true;
-
 }
 
 function sanitizeInput($string) {
@@ -137,7 +122,7 @@ function sanitizeInput($string) {
 		}
 		
 		if (checkFileCount() == true) {
-			if ( checkUploadError() == false && checkMIME() == true) {
+			if (checkUploadError() == false && checkMIME() == true) {
 				uploadFile();
 			}
 		}
@@ -146,39 +131,41 @@ function sanitizeInput($string) {
 	?>
 <hr>
 	<!-- Add Item Form															-->
-	<h3>Add Item Form:</h3>
+	<h3>Add Item:</h3>
 		<form method="POST" action="">
 			<label for="add_item">Add Item: </label>
 			<input id="add_item" name="add_item" type="text" placeholder="Item Here">
 			<button type="submit">SUBMIT</button>
 		</form>
 
-		<!-- if user feedback messages exist, output them. -->
-		<?php 
+		
+	<?php  // If user feedback messages exist, output them.
 		if (isset($GLOBALS['item_added'])) {
 			echo $GLOBALS['item_added'];
 		}
 
 		elseif (isset($GLOBALS['item_removed'])) {
 			echo $GLOBALS['item_removed'];
-		} ?>
+		} 
+	?>
 <hr>
 	<!-- Upload File Form														-->
-	<h3>Upload File Form:</h3>
+	<h3>Upload File:</h3>
 		<form method="POST" enctype="multipart/form-data" action="">
 			<label for="upload_file">Upload File:</label>
 			<input id="upload_file" name="upload_file" type="file" placeholder="Choose file">
 			<button type="submit" value="Upload">UPLOAD</button>
 		</form>
 
-		<!-- if error messages exist, output them. -->
-		<?php 
+		
+	<?php  // If file upload error messages exist, output them.
 		if (isset($GLOBALS['error_message'])) { 
 			echo $GLOBALS['error_message']; 
 		} 
 		elseif (isset($GLOBALS['file_uploaded'])) {
 			echo $GLOBALS['file_uploaded'];
-		} ?>
+		} 
+	?>
 <hr>
 </body>
 </html>
