@@ -31,6 +31,10 @@ function outputList($list) {
 	return $string;
 }
 
+function sortListAlpha($list) {
+	return sort($list);
+}
+
 function addItem($item, $list) {
 	// Add new item to existing array
 	$list[] = $item;
