@@ -34,6 +34,7 @@ function outputList($list) {
 function addItem($item, $list) {
 	// Add new item to existing array
 	$list[] = $item;
+	$GLOBALS['item_added'] = "<h5>Added item.</h5>";
 	return $list;
 }
 
@@ -41,6 +42,7 @@ function removeItem($item, $list) {
 	// If get request exists to remove item, do so.
 	unset($list[$item]);
 	array_values($list);
+	$GLOBALS['item_removed'] = "<h5>Removed item.</h5>";
 	return $list;
 }
 
@@ -79,7 +81,7 @@ function saveToFile($list, $filename = './data/list.txt') {
 
 function checkMIME() {
 	if ($_FILES['upload_file']['type'] != 'text/plain') {
-		echo "Error on file upload: MIME type isn't text/plain.";
+		$GLOBALS['error_message'] = "<h5>Error on file upload: MIME type isn't text/plain.</h5>";
 		return false;
 	}
 
@@ -93,7 +95,6 @@ function checkFileCount() {
 	}
 
 	else
-		// echo "Error on file upload: File count isn't 1.";
 		return false;
 }
 
@@ -103,7 +104,7 @@ function checkUploadError() {
 	}
 
 	else
-		echo "Error on file upload: Unknown error."; 
+		$GLOBALS['error_message'] = "<h5>Error on file upload: Unknown error.</h5>";
 		return true;
 
 }
@@ -127,13 +128,11 @@ function sanitizeInput($string) {
 		if (!empty($_POST)) {
 			$item = sanitizeInput($_POST['add_item']);
 			$list = addItem($item, $list);
-			echo "added item.";
 			saveToFile($list);
 		}
 
 		if (isset($_GET['removeIndex'])) {
 		 	$list = removeItem($_GET['removeIndex'], $list);
-		 	echo "removed item.";
 		 	saveToFile($list);
 		}
 		
@@ -148,7 +147,7 @@ function sanitizeInput($string) {
 		echo outputList($list);
 
 	?>
-
+<hr>
 	<!-- Add Item Form																-->
 	<h3>Add Item Form:</h3>
 	<p>
@@ -160,7 +159,17 @@ function sanitizeInput($string) {
 			<button type="submit">SUBMIT</button>
 
 		</form>
+
+		<?php if (isset($GLOBALS['item_added'])) {
+			echo $GLOBALS['item_added'];
+		}
+
+		elseif (isset($GLOBALS['item_removed'])) {
+			echo $GLOBALS['item_removed'];
+		} 
+		?>
 	</p>
+<hr>
 	<!-- Upload File Form																-->
 	<h3>Upload File Form:</h3>
 	<p>
@@ -172,6 +181,9 @@ function sanitizeInput($string) {
 			<button type="submit" value="Upload">UPLOAD</button>
 
 		</form>
+
+		<?php if (isset($GLOBALS['error_message'])) { echo $GLOBALS['error_message']; } ?>
 	</p>
+<hr>
 </body>
 </html>
