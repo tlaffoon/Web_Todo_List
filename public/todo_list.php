@@ -136,19 +136,17 @@ function sanitizeInput($string) {
 		 	saveToFile($list);
 		}
 		
-
 		if (checkFileCount() == true) {
-			if ( checkUploadError() == false && checkMIME() == true ) {
+			if ( checkUploadError() == false && checkMIME() == true) {
 				uploadFile();
 			}
 		}
-
 
 		echo outputList($list);
 
 	?>
 <hr>
-	<!-- Add Item Form																-->
+	<!-- Add Item Form															-->
 	<h3>Add Item Form:</h3>
 	<p>
 		<form method="POST" action="">
@@ -170,7 +168,7 @@ function sanitizeInput($string) {
 		?>
 	</p>
 <hr>
-	<!-- Upload File Form																-->
+	<!-- Upload File Form														-->
 	<h3>Upload File Form:</h3>
 	<p>
 		<form method="POST" enctype="multipart/form-data" action="">
