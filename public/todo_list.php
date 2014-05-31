@@ -1,5 +1,4 @@
 <?php
-/* -------------------------------------- */
 
 // OPEN FILE TO POPULATE LIST
 function openFile($filename) {
@@ -109,6 +108,10 @@ function checkUploadError() {
 
 }
 
+function sanitizeInput($string) {
+	return htmlspecialchars(strip_tags($string));
+}
+
 ?>
 
 <html>
@@ -116,13 +119,14 @@ function checkUploadError() {
 	<title>To Do List</title>
 </head>
 <body>
-<h2>To Do List:</h2>
+  <h2>To Do List:</h2>
 	<?php
 
 	$list = openFile('./data/list.txt');
 
 		if (!empty($_POST)) {
-			$list = addItem($_POST['add_item'], $list);
+			$item = sanitizeInput($_POST['add_item']);
+			$list = addItem($item, $list);
 			echo "added item.";
 			saveToFile($list);
 		}
