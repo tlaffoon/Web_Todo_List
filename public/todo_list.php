@@ -143,21 +143,17 @@ function sanitizeInput($string) {
 		}
 
 		echo outputList($list);
-
 	?>
 <hr>
 	<!-- Add Item Form															-->
 	<h3>Add Item Form:</h3>
 	<p>
 		<form method="POST" action="">
-
 			<label for="add_item">Add Item: </label>
 			<input id="add_item" name="add_item" type="text" placeholder="Item Here">
-
 			<button type="submit">SUBMIT</button>
-
 		</form>
-
+		<!-- if user feedback messages exist, output them. -->
 		<?php if (isset($GLOBALS['item_added'])) {
 			echo $GLOBALS['item_added'];
 		}
@@ -172,14 +168,11 @@ function sanitizeInput($string) {
 	<h3>Upload File Form:</h3>
 	<p>
 		<form method="POST" enctype="multipart/form-data" action="">
-
 			<label for="upload_file">Upload File:</label>
 			<input id="upload_file" name="upload_file" type="file" placeholder="Choose file">
-
 			<button type="submit" value="Upload">UPLOAD</button>
-
 		</form>
-
+		<!-- if error messages exist, output them. -->
 		<?php if (isset($GLOBALS['error_message'])) { echo $GLOBALS['error_message']; } ?>
 	</p>
 <hr>
