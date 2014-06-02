@@ -5,22 +5,23 @@ function openFile($filename) {
     $handle = fopen($filename, 'r');
 
     // Sets filesize to default 1kb if empty file
-    if (filesize($filename) == 0) {
-    	$default_filesize = 1000;
-    }
-    else $default_filesize = filesize($filename);
+    if (filesize($filename) > 0) {
 
-    $contents = trim(fread($handle, $default_filesize));
-    $list = explode("\n", $contents);
-    fclose($handle);
-    return $list;
+    	$contents = trim(fread($handle, filesize($filename)));
+    	$list = explode("\n", $contents);
+    	fclose($handle);
+    	return $list;
+	}
+
+	else 
+		$list = [];
+		return array_unique($list);
 }
 
 // OUTPUTS LIST FROM ARRAY AS HTML
 function outputList($list) {
 
-	$string = null;
-	$string .= "<ol>";
+	$string = "<ol>";
 	foreach ($list as $key => $item) {
 		$removeLink = "<a href=\"?removeIndex={$key} \">Remove</a>";
 		$string .= "<li>{$item} - {$removeLink}</li>";
@@ -32,14 +33,14 @@ function outputList($list) {
 function addItem($item, $list) {
 	$list[] = $item;
 	$GLOBALS['item_added'] = "Added item.";
-	return $list;
+	return array_unique($list);
 }
 
 function removeItem($item, $list) {
 	unset($list[$item]);
 	array_values($list);
 	$GLOBALS['item_removed'] = "Removed item.";
-	return $list;
+	return array_unique($list);
 }
 
 function uploadFile() {
@@ -55,7 +56,6 @@ function uploadFile() {
 
 // Overwrites Existing Save File With Current List
 function saveToFile($list, $filename = './data/list.txt') {
-	$list = array_unique($list);
 	$handle = fopen($filename, 'w');
 	$string = '';
 
@@ -127,7 +127,8 @@ function sanitizeInput($string) {
 			}
 		}
 
-		echo outputList(array_unique($list));
+		var_dump($list);
+		echo outputList($list);
 	?>
 <hr>
 	<!-- Add Item Form															-->
