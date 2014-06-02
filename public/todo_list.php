@@ -141,11 +141,11 @@ function sanitizeInput($string) {
 		
 	<?php  // If user feedback messages exist, output them.
 		if (isset($GLOBALS['item_added'])) {
-			echo $GLOBALS['item_added'];
+			echo "<p style=color:green;> {$GLOBALS['item_added']} </p>";
 		}
 
 		elseif (isset($GLOBALS['item_removed'])) {
-			echo $GLOBALS['item_removed'];
+			echo "<p style=color:orange;> {$GLOBALS['item_removed']} </p>";
 		} 
 	?>
 <hr>
@@ -160,10 +160,10 @@ function sanitizeInput($string) {
 		
 	<?php  // If file upload error messages exist, output them.
 		if (isset($GLOBALS['error_message'])) { 
-			echo $GLOBALS['error_message']; 
+			echo "<p style=color:red;> {$GLOBALS['error_message']} </p>"; 
 		} 
 		elseif (isset($GLOBALS['file_uploaded'])) {
-			echo $GLOBALS['file_uploaded'];
+			echo "<p style=color:blue;> {$GLOBALS['file_uploaded']} </p>";
 		} 
 	?>
 <hr>
