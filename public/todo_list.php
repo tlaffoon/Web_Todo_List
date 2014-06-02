@@ -127,7 +127,6 @@ function sanitizeInput($string) {
 			}
 		}
 
-		var_dump($list);
 		echo outputList($list);
 	?>
 <hr>
