@@ -35,9 +35,11 @@ function uploadFile() {
 	$saved_filename = $upload_dir . $filename;
 	move_uploaded_file($_FILES['upload_file']['tmp_name'], $saved_filename);
 
-	if (isset($saved_filename)) {
-	    $GLOBALS['file_uploaded']  = "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
-	}
+	return openFile($saved_filename);
+
+	// if (isset($saved_filename)) {
+	//     $GLOBALS['file_uploaded']  = "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
+	// }
 }
 
 // Overwrites Existing Save File With Current List
@@ -51,7 +53,6 @@ function saveToFile($list, $filename = '../data/list.txt') {
 
 	fwrite($handle, $string);
 	fclose($handle);
-	return $list;
 }
 
 function checkMIME() {
@@ -95,8 +96,8 @@ function sanitizeInput($string) {
 
 
 	<div id="header"></div>
-	<div id="date"><? echo date('l, F j'); ?></div>
-
+	<div id="date"><?= date('l ') . " - " . date('F j, Y'); ?></div> 
+	
 	<div id="add-form">
 	 	<!-- Add Item Form															-->
 			<form method="POST" action="">
@@ -154,7 +155,10 @@ function sanitizeInput($string) {
  		
  		if (checkFileCount() == true) {
  			if (checkUploadError() == false && checkMIME() == true) {
- 				uploadFile();
+ 				$new_items = uploadFile();
+ 				foreach ($new_items as $item) {
+ 					$list[] = $item;
+ 				}
  			}
  		}
 
