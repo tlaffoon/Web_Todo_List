@@ -1,0 +1,62 @@
+/*@font-face {
+font-family: Beyond Sky;
+src: url(sansation_light.woff);
+} */
+
+body {
+	width: 600px;
+}
+
+h2 {
+	color: #000000;
+}
+
+#header {
+	height: 148px;
+	width: 600px;
+	background-image: url('http://todo.dev/img/todolist_header.png');
+
+	margin-left: 20px;
+
+	position: relative;
+	top: 5px;
+
+}
+
+#list {
+	padding: 10px;
+	width: 600px;
+}
+
+li {
+	font: 400 100px/1.3 'Special Elite', Arial, sans-serif;
+	font-size: 48px;
+	color: #2b2b2b;
+
+	height: 55px;
+	margin-left: 20px;
+	list-style-image: url('http://todo.dev/img/todolist_button.png');
+}
+
+#date {
+	font-weight: bold;
+	text-align: right;
+	padding-top: 10px;
+	position: relative;
+	right: 15px;
+}
+
+#underline {
+	margin-left: 20px;
+	padding-bottom: 10px;
+	}
+
+#add-form {
+	position: relative;
+	margin-left: 50px;
+}
+
+#upload-form {
+	position: relative;
+	margin-left: 50px;
+}
