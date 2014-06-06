@@ -3,8 +3,15 @@ font-family: Beyond Sky;
 src: url(sansation_light.woff);
 } */
 
+/* 
+* {
+	font: 400 100px/1.3 'Special Elite', Arial, sans-serif;
+	font-size: 14px;
+} */
+
 body {
 	width: 600px;
+	background-image: url('http://todo.dev/img/light.png');
 }
 
 h2 {
