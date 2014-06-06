@@ -35,11 +35,8 @@ function uploadFile() {
 	$saved_filename = $upload_dir . $filename;
 	move_uploaded_file($_FILES['upload_file']['tmp_name'], $saved_filename);
 
-	return openFile($saved_filename);
+	return $saved_filename;
 
-	// if (isset($saved_filename)) {
-	//     $GLOBALS['file_uploaded']  = "<p>You can download your file <a href='/uploads/{$filename}'>here</a>.</p>";
-	// }
 }
 
 // Overwrites Existing Save File With Current List
@@ -57,7 +54,7 @@ function saveToFile($list, $filename = '../data/list.txt') {
 
 function checkMIME() {
 	if ($_FILES['upload_file']['type'] != 'text/plain') {
-		$GLOBALS['error_message'] = "Error on file upload: MIME type isn't text/plain.";
+		$GLOBALS['error_message'] = "Error on file upload - must be a plain text file.";
 		return false;
 	}
 	else 
@@ -101,41 +98,20 @@ function sanitizeInput($string) {
 	<div id="add-form">
 	 	<!-- Add Item Form															-->
 			<form method="POST" action="">
-				<label for="add_item">Add Item: </label>
+				<label for="add_item">Add an item: </label>
 				<input id="add_item" name="add_item" type="text" placeholder="Item Here">
 				<button type="submit">SUBMIT</button>
 			</form>
-
-			
-		<?php  // If user feedback messages exist, output them.
-			if (isset($GLOBALS['item_added'])) {
-				echo "{$GLOBALS['item_added']}";
-			}
-
-			elseif (isset($GLOBALS['item_removed'])) {
-				echo "{$GLOBALS['item_removed']}";
-			} 
-		?>
 	</div>
 
 	<div id="upload-form">
 		<!-- Upload File Form														-->
 			<form method="POST" enctype="multipart/form-data" action="">
-				<label for="upload_file">Upload File:</label>
+				<label for="upload_file">Add items from file:</label>
 				<input id="upload_file" name="upload_file" type="file" placeholder="Choose file">
 				<button type="submit" value="Upload">UPLOAD</button>
 			</form>
 	</div>
-			
-		<?php  // If file upload error messages exist, output them.
-			if (isset($GLOBALS['error_message'])) { 
-				echo "{$GLOBALS['error_message']}"; 
-			} 
-			elseif (isset($GLOBALS['file_uploaded'])) {
-				echo "{$GLOBALS['file_uploaded']}";
-			} 
-		?>
-
 
  	<?php
 
@@ -152,19 +128,17 @@ function sanitizeInput($string) {
  		 	saveToFile($list);
  		 	header('Location: http://todo.dev/');
  		}
- 		
- 		if (checkFileCount() == true) {
- 			if (checkUploadError() == false && checkMIME() == true) {
- 				$new_items = uploadFile();
- 				foreach ($new_items as $item) {
- 					$list[] = $item;
- 					$list = array_unique($list);
- 					saveToFile($list);
- 				}
- 			}
- 		}
 
+ 		if (checkFileCount() == true && checkUploadError() == false && checkMIME() == true) {
+ 				$filename = uploadFile();
+ 				$items_to_add = openFile($filename);
+ 				foreach ($items_to_add as $item) {
+ 					$list[] = $item;
+ 				}
+ 				saveToFile($list);
+ 			}
  	?>
+
 	<div id="list">
 		<ul>
 		<? foreach ($list as $key => $item) : ?>
