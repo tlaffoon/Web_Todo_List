@@ -158,6 +158,7 @@ function sanitizeInput($string) {
  				$new_items = uploadFile();
  				foreach ($new_items as $item) {
  					$list[] = $item;
+ 					$list = array_unique($list);
  					saveToFile($list);
  				}
  			}
