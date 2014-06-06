@@ -1,12 +1,10 @@
 <?php
 
 // OPEN FILE TO POPULATE LIST
-function openFile($filename) {
+function openFile($filename = '../data/list.txt') {
     $handle = fopen($filename, 'r');
 
-    // Sets filesize to default 1kb if empty file
     if (filesize($filename) > 0) {
-
     	$contents = trim(fread($handle, filesize($filename)));
     	$list = explode("\n", $contents);
     	fclose($handle);
@@ -16,18 +14,6 @@ function openFile($filename) {
 	else 
 		$list = [];
 		return array_unique($list);
-}
-
-// OUTPUTS LIST FROM ARRAY AS HTML
-function outputList($list) {
-
-	$string = "<ol>";
-	foreach ($list as $key => $item) {
-		$removeLink = "<a href=\"?removeIndex={$key} \">Remove</a>";
-		$string .= "<li>{$item} - {$removeLink}</li>";
-	}
-	$string .= "</ol>";
-	return $string;
 }
 
 function addItem($item, $list) {
@@ -55,7 +41,7 @@ function uploadFile() {
 }
 
 // Overwrites Existing Save File With Current List
-function saveToFile($list, $filename = './data/list.txt') {
+function saveToFile($list, $filename = '../data/list.txt') {
 	$handle = fopen($filename, 'w');
 	$string = '';
 
@@ -103,69 +89,84 @@ function sanitizeInput($string) {
 <html>
 <head>
 	<title>To Do List</title>
-</head>
+	<link rel="stylesheet" type="text/css" href="http://todo.dev/css/style.css">
+	<link href="//fonts.googleapis.com/css?family=Special+Elite:400" rel="stylesheet" type="text/css">
 <body>
-  <h2>To Do List:</h2>
-	<?php
 
-	$list = openFile('./data/list.txt');
 
-		if (!empty($_POST)) {
-			$item = sanitizeInput($_POST['add_item']);
-			$list = addItem($item, $list);
-			saveToFile($list);
-		}
+	<div id="header"></div>
+	<div id="date"><? echo date('l, F j'); ?></div>
 
-		if (isset($_GET['removeIndex'])) {
-		 	$list = removeItem($_GET['removeIndex'], $list);
-		 	saveToFile($list);
-		}
-		
-		if (checkFileCount() == true) {
-			if (checkUploadError() == false && checkMIME() == true) {
-				uploadFile();
+	<div id="add-form">
+	 	<!-- Add Item Form															-->
+			<form method="POST" action="">
+				<label for="add_item">Add Item: </label>
+				<input id="add_item" name="add_item" type="text" placeholder="Item Here">
+				<button type="submit">SUBMIT</button>
+			</form>
+
+			
+		<?php  // If user feedback messages exist, output them.
+			if (isset($GLOBALS['item_added'])) {
+				echo "{$GLOBALS['item_added']}";
 			}
-		}
 
-		echo outputList($list);
-	?>
-<hr>
-	<!-- Add Item Form															-->
-	<h3>Add Item:</h3>
-		<form method="POST" action="">
-			<label for="add_item">Add Item: </label>
-			<input id="add_item" name="add_item" type="text" placeholder="Item Here">
-			<button type="submit">SUBMIT</button>
-		</form>
+			elseif (isset($GLOBALS['item_removed'])) {
+				echo "{$GLOBALS['item_removed']}";
+			} 
+		?>
+	</div>
 
-		
-	<?php  // If user feedback messages exist, output them.
-		if (isset($GLOBALS['item_added'])) {
-			echo "<p style=color:green;> {$GLOBALS['item_added']} </p>";
-		}
+	<div id="upload-form">
+		<!-- Upload File Form														-->
+			<form method="POST" enctype="multipart/form-data" action="">
+				<label for="upload_file">Upload File:</label>
+				<input id="upload_file" name="upload_file" type="file" placeholder="Choose file">
+				<button type="submit" value="Upload">UPLOAD</button>
+			</form>
+	</div>
+			
+		<?php  // If file upload error messages exist, output them.
+			if (isset($GLOBALS['error_message'])) { 
+				echo "{$GLOBALS['error_message']}"; 
+			} 
+			elseif (isset($GLOBALS['file_uploaded'])) {
+				echo "{$GLOBALS['file_uploaded']}";
+			} 
+		?>
 
-		elseif (isset($GLOBALS['item_removed'])) {
-			echo "<p style=color:orange;> {$GLOBALS['item_removed']} </p>";
-		} 
-	?>
-<hr>
-	<!-- Upload File Form														-->
-	<h3>Upload File:</h3>
-		<form method="POST" enctype="multipart/form-data" action="">
-			<label for="upload_file">Upload File:</label>
-			<input id="upload_file" name="upload_file" type="file" placeholder="Choose file">
-			<button type="submit" value="Upload">UPLOAD</button>
-		</form>
 
-		
-	<?php  // If file upload error messages exist, output them.
-		if (isset($GLOBALS['error_message'])) { 
-			echo "<p style=color:red;> {$GLOBALS['error_message']} </p>"; 
-		} 
-		elseif (isset($GLOBALS['file_uploaded'])) {
-			echo "<p style=color:blue;> {$GLOBALS['file_uploaded']} </p>";
-		} 
-	?>
-<hr>
+ 	<?php
+
+ 	$list = openFile();
+
+ 		if (!empty($_POST)) {
+ 			$item = sanitizeInput($_POST['add_item']);
+ 			$list = addItem($item, $list);
+ 			saveToFile($list);
+ 		}
+
+ 		if (isset($_GET['removeIndex'])) {
+ 		 	$list = removeItem($_GET['removeIndex'], $list);
+ 		 	saveToFile($list);
+ 		 	header('Location: http://todo.dev/');
+ 		}
+ 		
+ 		if (checkFileCount() == true) {
+ 			if (checkUploadError() == false && checkMIME() == true) {
+ 				uploadFile();
+ 			}
+ 		}
+
+ 	?>
+	<div id="list">
+		<ul>
+		<? foreach ($list as $key => $item) : ?>
+			<li><?= "{$item} - <a href=\"?removeIndex={$key} \">Remove</a><br>" ?></li>
+			<img id="underline" src="http://todo.dev/img/underline.png">
+		<? endforeach ?>
+		</ul>
+ 	</div>
+
 </body>
 </html>
