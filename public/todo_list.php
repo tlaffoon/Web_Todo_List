@@ -2,16 +2,6 @@
 
 require('./includes/filestore.php');
 
-function addItem($item, $list) {
-	$list[] = $item;
-	return array_unique($list);
-}
-
-function removeItem($item, $list) {
-	unset($list[$item]);
-	return array_unique(array_values($list));
-}
-
 function uploadFile() {
 	$upload_dir = '/vagrant/sites/todo.dev/public/uploads/';
 	$filename = basename($_FILES['upload_file']['name']);
@@ -48,6 +38,9 @@ function checkUploadError() {
 }
 
 function sanitizeInput($string) {
+	if (strlen($string) == 0 || strlen($string) > 240) {
+		throw new Exception("Error on item add.  Please use between 1 and 240 characters.", 1);
+	}
 	return htmlspecialchars(strip_tags($string));
 }
 
