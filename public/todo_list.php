@@ -1,6 +1,7 @@
 <?php
 
 require('./includes/filestore.php');
+class InvalidInputException extends Exception { }
 
 function uploadFile() {
 	$upload_dir = '/vagrant/sites/todo.dev/public/uploads/';
@@ -39,7 +40,7 @@ function checkUploadError() {
 
 function sanitizeInput($string) {
 	if (strlen($string) == 0 || strlen($string) > 240) {
-		throw new Exception("There was a problem adding your item.  Please use between 1 and 240 characters.", 1);
+		throw new InvalidInputException("There was a problem adding your item.  Please use between 1 and 240 characters.", 1);
 	}
 	return htmlspecialchars(strip_tags($string));
 }
@@ -83,7 +84,7 @@ function addList($items_to_add, $list) {
 			</form>
 	</div>
 
- 	<?php
+<?php
 
  	$listObject = new Filestore('../data/list.txt');
  	$list = $listObject->read($listObject->filename);
@@ -93,33 +94,33 @@ function addList($items_to_add, $list) {
  		try {
 
  			$list[] = sanitizeInput($_POST['add_item']);
- 		}
- 		catch (Exception $e) {
- 			echo "Exception: " . $e->getMessage();
- 		}
  			$list = array_unique($list);
  			$listObject->write(array_unique($list));
- 	}  // END POST data
+ 		}
+ 		catch (InvalidInputException $e) {
+ 			echo "Exception: " . $e->getMessage();
+ 		}
+ 	}
  	
 
 
- 		// Process GET requests
- 		if (isset($_GET['removeIndex'])) {
- 		 	unset($list[$_GET['removeIndex']]);
- 		 	$list = array_unique(array_values($list));
- 		 	$listObject->write($list);
- 		 	header('Location: http://todo.dev/');
- 		}
+ 	// Process GET requests
+ 	if (isset($_GET['removeIndex'])) {
+ 		unset($list[$_GET['removeIndex']]);
+ 		$list = array_unique(array_values($list));
+ 		$listObject->write($list);
+ 		header('Location: http://todo.dev/');
+ 	}
 
- 		// Process Uploaded files
- 		if (checkFileCount() == true && checkUploadError() == false && checkMIME() == true) {
- 				$filename = uploadFile();
- 				$listObject2 = new Filestore($filename);
- 				$items_to_add = $listObject2->read($listObject2->filename);
- 				$list = addList($items_to_add, $list);
- 				$listObject->write($list);
- 			}
- 	?>
+ 	// Process Uploaded files
+ 	if (checkFileCount() == true && checkUploadError() == false && checkMIME() == true) {
+ 		$filename = uploadFile();
+ 		$listObject2 = new Filestore($filename);
+ 		$items_to_add = $listObject2->read($listObject2->filename);
+ 		$list = addList($items_to_add, $list);
+ 		$listObject->write($list);
+ 	}
+ ?>
 
 
 	<div id="list">
