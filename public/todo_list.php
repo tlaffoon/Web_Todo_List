@@ -39,7 +39,7 @@ function checkUploadError() {
 
 function sanitizeInput($string) {
 	if (strlen($string) == 0 || strlen($string) > 240) {
-		throw new Exception("Error on item add.  Please use between 1 and 240 characters.", 1);
+		throw new Exception("There was a problem adding your item.  Please use between 1 and 240 characters.", 1);
 	}
 	return htmlspecialchars(strip_tags($string));
 }
@@ -88,13 +88,22 @@ function addList($items_to_add, $list) {
  	$listObject = new Filestore('../data/list.txt');
  	$list = $listObject->read($listObject->filename);
 
- 		if (!empty($_POST)) {
- 			$item = sanitizeInput($_POST['add_item']);
- 			$list[] = $item;
+	// Process POST data
+ 	if (!empty($_POST)) {
+ 		try {
+
+ 			$list[] = sanitizeInput($_POST['add_item']);
+ 		}
+ 		catch (Exception $e) {
+ 			echo "Exception: " . $e->getMessage();
+ 		}
  			$list = array_unique($list);
  			$listObject->write(array_unique($list));
- 		}
+ 	}  // END POST data
+ 	
 
+
+ 		// Process GET requests
  		if (isset($_GET['removeIndex'])) {
  		 	unset($list[$_GET['removeIndex']]);
  		 	$list = array_unique(array_values($list));
@@ -102,6 +111,7 @@ function addList($items_to_add, $list) {
  		 	header('Location: http://todo.dev/');
  		}
 
+ 		// Process Uploaded files
  		if (checkFileCount() == true && checkUploadError() == false && checkMIME() == true) {
  				$filename = uploadFile();
  				$listObject2 = new Filestore($filename);
@@ -111,6 +121,7 @@ function addList($items_to_add, $list) {
  			}
  	?>
 
+
 	<div id="list">
 		<ul>
 		<? foreach ($list as $key => $item) : ?>
@@ -119,6 +130,9 @@ function addList($items_to_add, $list) {
 		<? endforeach ?>
 		</ul>
  	</div>
+
+
+
 
  	<script type="text/javascript">
 
