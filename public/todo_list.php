@@ -1,32 +1,15 @@
 <?php
 
-// OPEN FILE TO POPULATE LIST
-function openFile($filename = '../data/list.txt') {
-    $handle = fopen($filename, 'r');
-
-    if (filesize($filename) > 0) {
-    	$contents = trim(fread($handle, filesize($filename)));
-    	$list = explode("\n", $contents);
-    	fclose($handle);
-    	return $list;
-	}
-
-	else 
-		$list = [];
-		return array_unique($list);
-}
+require('./includes/filestore.php');
 
 function addItem($item, $list) {
 	$list[] = $item;
-	$GLOBALS['item_added'] = "Added item.";
 	return array_unique($list);
 }
 
 function removeItem($item, $list) {
 	unset($list[$item]);
-	array_values($list);
-	$GLOBALS['item_removed'] = "Removed item.";
-	return array_unique($list);
+	return array_unique(array_values($list));
 }
 
 function uploadFile() {
@@ -36,20 +19,6 @@ function uploadFile() {
 	move_uploaded_file($_FILES['upload_file']['tmp_name'], $saved_filename);
 
 	return $saved_filename;
-
-}
-
-// Overwrites Existing Save File With Current List
-function saveToFile($list, $filename = '../data/list.txt') {
-	$handle = fopen($filename, 'w');
-	$string = '';
-
-	foreach ($list as $key => $value) {
-		$string .= "$value\n";
-	}
-
-	fwrite($handle, $string);
-	fclose($handle);
 }
 
 function checkMIME() {
@@ -82,6 +51,13 @@ function sanitizeInput($string) {
 	return htmlspecialchars(strip_tags($string));
 }
 
+function addList($items_to_add, $list) { 
+	foreach ($items_to_add as $item) {
+		$list[] = $item;
+	}
+	return array_unique($list);
+}
+
 ?>
 
 <html>
@@ -89,6 +65,7 @@ function sanitizeInput($string) {
 	<title>To Do List</title>
 	<link rel="stylesheet" type="text/css" href="http://todo.dev/css/style.css">
 	<link href="//fonts.googleapis.com/css?family=Special+Elite:400" rel="stylesheet" type="text/css">
+	<script type="text/javascript" src="/js/jquery.js"></script>
 <body>
 
 
@@ -115,27 +92,29 @@ function sanitizeInput($string) {
 
  	<?php
 
- 	$list = openFile();
+ 	$listObject = new Filestore('../data/list.txt');
+ 	$list = $listObject->read($listObject->filename);
 
  		if (!empty($_POST)) {
  			$item = sanitizeInput($_POST['add_item']);
- 			$list = addItem($item, $list);
- 			saveToFile($list);
+ 			$list[] = $item;
+ 			$list = array_unique($list);
+ 			$listObject->write(array_unique($list));
  		}
 
  		if (isset($_GET['removeIndex'])) {
- 		 	$list = removeItem($_GET['removeIndex'], $list);
- 		 	saveToFile($list);
+ 		 	unset($list[$_GET['removeIndex']]);
+ 		 	$list = array_unique(array_values($list));
+ 		 	$listObject->write($list);
  		 	header('Location: http://todo.dev/');
  		}
 
  		if (checkFileCount() == true && checkUploadError() == false && checkMIME() == true) {
  				$filename = uploadFile();
- 				$items_to_add = openFile($filename);
- 				foreach ($items_to_add as $item) {
- 					$list[] = $item;
- 				}
- 				saveToFile($list);
+ 				$listObject2 = new Filestore($filename);
+ 				$items_to_add = $listObject2->read($listObject2->filename);
+ 				$list = addList($items_to_add, $list);
+ 				$listObject->write($list);
  			}
  	?>
 
@@ -147,6 +126,21 @@ function sanitizeInput($string) {
 		<? endforeach ?>
 		</ul>
  	</div>
+
+ 	<script type="text/javascript">
+
+ 	$('document').ready(function () {
+
+ 		console.log('Document Loaded.');
+
+ 		$('li').on('click', function () {
+ 			console.log($(this));
+ 			//$(this).addClass('checked-li');
+ 		});
+
+ 	});
+
+ 	</script>
 
 </body>
 </html>
