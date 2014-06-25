@@ -1,55 +1,48 @@
 <?php
 
-require('./includes/filestore.php');
-class InvalidInputException extends Exception { }
+// New ToDo Application
 
-function uploadFile() {
-	$upload_dir = '/vagrant/sites/todo.dev/public/uploads/';
-	$filename = basename($_FILES['upload_file']['name']);
-	$saved_filename = $upload_dir . $filename;
-	move_uploaded_file($_FILES['upload_file']['tmp_name'], $saved_filename);
+// Establish DB Connection
+$dbc = new PDO('mysql: host=127.0.0.1; dbname=todo', 'codeup', 'password');
 
-	return $saved_filename;
+// Tell PDO to throw exceptions on error
+$dbc->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$dbc->getAttribute(PDO::ATTR_CONNECTION_STATUS) . "\n";
+
+function getItems($dbc) {
+    return $dbc->query('SELECT * FROM items')->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function checkMIME() {
-	if ($_FILES['upload_file']['type'] != 'text/plain') {
-		$GLOBALS['error_message'] = "Error on file upload - must be a plain text file.";
-		return false;
-	}
-	else 
-		return true;
+function insertItem($dbc, $item) {
+	$query = 'INSERT INTO items (item) VALUES (:item);';
+	$stmt = $dbc->prepare($query);
+	$stmt->bindValue(':item', $item, PDO::PARAM_STR);
+	$stmt->execute();
+	return "<p>Inserted ID: " . $dbc->lastInsertId() . "</p>";
 }
 
-function checkFileCount() {
-	if (count($_FILES) == 1) {
-		return true;
-	}
-	else
-		return false;
+function removeItem($dbc, $id) {
+	$query = 'DELETE FROM items WHERE id = :id';
+	$stmt = $dbc->prepare($query);
+	$stmt->bindValue(':id', $id, PDO::PARAM_STR);
+	$stmt->execute();
 }
 
-function checkUploadError() {
-	if ($_FILES['upload_file']['error'] == 0) {
-		return false;
-	}
-	else
-		$GLOBALS['error_message'] = "Error on file upload: Unknown error.";
-		return true;
+$todo = getItems($dbc);
+
+if (!empty($_POST['item'])) {
+	insertItem($dbc, $_POST['item']);
+	header('Location: http://todo.dev/todo2.php');
 }
 
-function sanitizeInput($string) {
-	if (strlen($string) == 0 || strlen($string) > 240) {
-		throw new InvalidInputException("There was a problem adding your item.  Please use between 1 and 240 characters.", 1);
-	}
-	return htmlspecialchars(strip_tags($string));
+if (!empty($_POST['remove'])) {
+	var_dump($_POST);
+	removeItem($dbc, $_POST['remove']);
+	header('Location: http://todo.dev/todo2.php');
 }
 
-function addList($items_to_add, $list) { 
-	foreach ($items_to_add as $item) {
-		$list[] = $item;
-	}
-	return array_unique($list);
+if (!empty($_GET)) {
+	echo "get found.";
 }
 
 ?>
@@ -57,98 +50,60 @@ function addList($items_to_add, $list) {
 <html>
 <head>
 	<title>To Do List</title>
-	<link rel="stylesheet" type="text/css" href="http://todo.dev/css/style.css">
-	<link href="//fonts.googleapis.com/css?family=Special+Elite:400" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" type="text/css" href="./css/bootstrap.css">
 	<script type="text/javascript" src="/js/jquery.js"></script>
-<body>
 
+	<body>
+		<nav class="navbar navbar-default" role="navigation">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<p class="navbar-brand">Todo List</p>
+				</div>
+			</div>
+		</nav>
 
-	<div id="header"></div>
-	<div id="date"><?= date('l ') . " - " . date('F j, Y'); ?></div> 
-	
-	<div id="add-form">
-	 	<!-- Add Item Form															-->
-			<form method="POST" action="">
+		<div class="container col-md-6">
+
+		<div id="add-form" class="form-group">
+			<form role="form" method="POST" action="">
 				<label for="add_item">Add an item: </label>
-				<input id="add_item" name="add_item" type="text" placeholder="Item Here">
-				<button type="submit">SUBMIT</button>
+				<input id="item" name="item" class="form-control" type="text">
+				<button id="btn1" class="btn btn-default" type="submit">Add</button>
 			</form>
+		</div>
+
+		<table class="table table-striped">
+			<tr>
+				<? foreach ($todo as $entry) : ?>
+					<? //foreach ($entry as $key => $value) : ?>
+						<td><?= "{$entry['item']}"; ?></td>
+						<td><button class="btn btn-danger btn-sm pull-right btn-remove" data-todo="<?= $entry['id']; ?>">Remove</button></td>
+					</tr>
+					<? //endforeach ?>
+				<? endforeach ?>
+		</table>
 	</div>
 
-	<div id="upload-form">
-		<!-- Upload File Form														-->
-			<form method="POST" enctype="multipart/form-data" action="">
-				<label for="upload_file">Add items from file:</label>
-				<input id="upload_file" name="upload_file" type="file" placeholder="Choose file">
-				<button type="submit" value="Upload">UPLOAD</button>
-			</form>
-	</div>
+	 	<form id="remove-form" action="" method="post">
+	 	    <input id="remove-id" type="hidden" name="remove" value="">
+	 	</form>
 
-<?php
+	 <script type="text/javascript">
 
- 	$listObject = new Filestore('../data/list.txt');
- 	$list = $listObject->read($listObject->filename);
+	$('document').ready(function () {
 
-	// Process POST data
- 	if (!empty($_POST)) {
- 		try {
+	 	console.log('Document Loaded.');
 
- 			$list[] = sanitizeInput($_POST['add_item']);
- 			$list = array_unique($list);
- 			$listObject->write(array_unique($list));
- 		}
- 		catch (InvalidInputException $e) {
- 			echo "Exception: " . $e->getMessage();
- 		}
- 	}
- 	
+	 	$('.btn-remove').click(function () {
+	 	    var todoID = $(this).data('todo');
+	 	    // if (confirm('Are you sure you want to remove this item?')) {
+	 	        $('#remove-id').val(todoID);
+	 	        $('#remove-form').submit();
+	 	    // }
+	 	});
+	});
 
+	 	</script>
 
- 	// Process GET requests
- 	if (isset($_GET['removeIndex'])) {
- 		unset($list[$_GET['removeIndex']]);
- 		$list = array_unique(array_values($list));
- 		$listObject->write($list);
- 		header('Location: http://todo.dev/');
- 	}
-
- 	// Process Uploaded files
- 	if (checkFileCount() == true && checkUploadError() == false && checkMIME() == true) {
- 		$filename = uploadFile();
- 		$listObject2 = new Filestore($filename);
- 		$items_to_add = $listObject2->read($listObject2->filename);
- 		$list = addList($items_to_add, $list);
- 		$listObject->write($list);
- 	}
- ?>
-
-
-	<div id="list">
-		<ul>
-		<? foreach ($list as $key => $item) : ?>
-			<li><?= "{$item} - <a href=\"?removeIndex={$key} \">Remove</a><br>" ?></li>
-			<img id="underline" src="http://todo.dev/img/underline.png">
-		<? endforeach ?>
-		</ul>
- 	</div>
-
-
-
-
- 	<script type="text/javascript">
-
- 	$('document').ready(function () {
-
- 		console.log('Document Loaded.');
-
- 		$('li').on('click', function () {
- 			console.log($(this));
- 			//$(this).addClass('checked-li');
- 		});
-
- 	});
-
- 	</script>
-
-</body>
-</html>
+	</body>
+	</html>
