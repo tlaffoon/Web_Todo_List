@@ -2,27 +2,6 @@
 
 // New ToDo Application
 
-$itemsPerPage = 5;
-
-if (!empty($_POST['item'])) {
-	insertItem($dbc, $_POST['item']);
-	header('Location: http://todo.dev/');
-}
-
-if (!empty($_POST['remove'])) {
-	var_dump($_POST);
-	removeItem($dbc, $_POST['remove']);
-	header('Location: http://todo.dev/');
-}
-
-if (empty($_GET)) {
-	$pageID = 0;
-}
-
-else {
-	$pageID = $_GET['page'];
-}
-
 try {
 	// Establish DB Connection
 	$dbc = new PDO('mysql: host=127.0.0.1; dbname=todo', 'codeup', 'password');
@@ -59,10 +38,30 @@ function countItems($dbc) {
 	return $dbc->query('SELECT COUNT(*) FROM items')->fetchColumn();
 }
 
+$itemsPerPage = 5;
 
-$maxPages = floor(countItems($dbc) / $itemsPerPage);
+if (!empty($_POST['item'])) {
+	insertItem($dbc, $_POST['item']);
+	header('Location: http://todo.dev/');
+}
 
-$offset = $pageID * $itemsPerPage;
+if (!empty($_POST['remove'])) {
+	var_dump($_POST);
+	removeItem($dbc, $_POST['remove']);
+	header('Location: http://todo.dev/');
+}
+
+if (empty($_GET)) {
+	$pageID = 1;
+}
+
+else {
+	$pageID = $_GET['page'];
+}
+
+$maxPages = ceil(countItems($dbc) / $itemsPerPage);
+
+$offset = ($pageID * $itemsPerPage) - $itemsPerPage;
 
 $todo = getItems($dbc, $itemsPerPage, $offset);
 
@@ -74,6 +73,15 @@ $todo = getItems($dbc, $itemsPerPage, $offset);
 	<title>To Do List</title>
 	<link rel="stylesheet" type="text/css" href="./css/bootstrap.css">
 	<script type="text/javascript" src="/js/jquery.js"></script>
+	<style type="text/css">
+	#item {
+		width: 80%;
+	}
+	.spaced {
+		margin-bottom: 5px;
+	}
+	</style>
+</head>
 
 	<body>
 		<nav class="navbar navbar-default" role="navigation">
@@ -84,40 +92,37 @@ $todo = getItems($dbc, $itemsPerPage, $offset);
 			</div>
 		</nav>
 
-	<div class="container col-md-6">
-		<div id="add-form" class="form-group">
-			<form role="form" method="POST" action="">
+	<div class="container col-md-6 col-md-offset-2">
+		<div id="add-form" class="form-group input-append">
+			<form class="form-inline" role="form" method="POST" action="">
 				<label for="add_item">Add an item: </label>
-				<input id="item" name="item" class="form-control" type="text">
+				<div class="form-horizontal">
+				<input id="item" class="form-control" name="item" type="text">
 				<button id="btn1" class="btn btn-default" type="submit">Add</button>
+				</div>
 			</form>
 		</div>
+
+		<? // Begin Pagination ?>
+		<? if ($pageID > 1) : ?>
+			<a class="btn btn-small btn-default pull-left spaced" href="?page=<?= ($pageID - 1) ?>"> Previous </a>
+		<? endif ?>
+		
+		<? if ($pageID < $maxPages) : ?>
+			<a class="btn btn-small btn-default pull-right spaced" href="?page=<?= ($pageID + 1) ?>"> Next </a>
+		<? endif ?>
+		<? // End Pagination ?>
 
 		<table class="table table-striped">
 			<tr>
 				<? foreach ($todo as $entry) : ?>
 					<? //foreach ($entry as $key => $value) : ?>
 						<td><?= "{$entry['item']}"; ?></td>
-						<td><button class="btn btn-danger btn-sm pull-right btn-remove" data-todo="<?= $entry['id']; ?>">Remove</button></td>
+						<td><button class="btn btn-danger btn-exsm pull-right btn-remove" data-todo="<?= $entry['id']; ?>">Remove</button></td>
 					</tr>
 					<? //endforeach ?>
 				<? endforeach ?>
 		</table>
-	</div>
-
-
-	<div class="container col-md-6">
-
-	<? // Begin Pagination ?>
-	<? if ($pageID != 0) : ?>
-		<a style="float: left" href="?page=<?= ($pageID - 1) ?>"> Previous </a>
-	<? endif ?>
-	
-	<? if ($pageID < $maxPages) : ?>
-		<a style="float: right" href="?page=<?= ($pageID + 1) ?>"> Next </a>
-	<? endif ?>
-	<? // End Pagination ?>
-
 	</div>
 
 	 	<form id="remove-form" action="" method="post">
@@ -126,12 +131,34 @@ $todo = getItems($dbc, $itemsPerPage, $offset);
 
 	<script type="text/javascript">
 	$('document').ready(function () {
+
+		console.log('Document Loaded.');
+
+		$('#btn1').click(function () {
+		    $(this).addClass('btn-info');
+		    $(this).fadeOut;
+		});
+
 	 	$('.btn-remove').click(function () {
 	 	    var todoID = $(this).data('todo');
 	 	    // if (confirm('Are you sure you want to remove this item?')) {
 	 	        $('#remove-id').val(todoID);
 	 	        $('#remove-form').submit();
 	 	    // }
+	 	});
+
+	 	$('#btn-prev').click(function () {
+	 	 	var pageID = $(this).data('pageID');
+	 	 	console.log(pageID);
+	 	 	//get pageID and increment/decrement value
+	 	 	// pass get request with new value to browser
+	 	});
+
+	 	$('#btn-next').click(function () {
+	 	 	var pageID = $(this).data('pageID');
+	 	 	console.log(pageID);
+	 	 	//get pageID and increment/decrement value
+	 	 	// pass get request with new value to browser
 	 	});
 	});
 
